@@ -51,7 +51,7 @@ def log_messages_to_list(filename, n):
   return splits  # Return the list of messages
 
 # Sample JSON file path (replace with your actual path)
-json_file = "/home/bek/Downloads/SQLite.json_modified.json"
+json_file = "SQLite.json_modified.json"
 
 # Number of messages to store
 num_messages_to_store = 1000
