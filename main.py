@@ -67,3 +67,26 @@ persist_directory = 'docs/chroma/'
 
 # Create the vector store
 vector_database = Chroma.from_texts(texts, embeddings)
+
+vector_index = vector_database.as_retriever(search_kwargs={"k": 5})
+
+
+question = ".net developer"
+
+# Similarity search with k = 5
+docs = vector_database.similarity_search(question,k=5)
+
+# Create an empty string to store the job postings
+all_job_postings = ""
+
+# Iterate through the job postings
+for i in range(5):
+    job_posting = f"Job {i+1}:\n"
+    job_posting += f"  Text: {docs[i]}\n"
+    job_posting += "-------------------\n"
+    
+    # Append the current job posting to the variable containing all job postings
+    all_job_postings += job_posting
+
+# Print all job postings at once
+# print(all_job_postings)
