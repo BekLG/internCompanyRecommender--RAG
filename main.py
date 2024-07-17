@@ -28,7 +28,7 @@ persist_directory = 'docs/chroma/'
 def startup_function():
     print("Server is starting...")
     json_file = "SQLite.json_modified.json"
-    num_messages_to_store = 10
+    num_messages_to_store = 1000
     texts = log_messages_to_list(json_file, num_messages_to_store)
     global vector_database
     vector_database = Chroma.from_texts(texts, embeddings)
@@ -58,18 +58,17 @@ A list containing the text descriptions of 5 job postings.
 
 Output:
 
-A JSON object containing information extracted from each job posting.
+a string of 3 arrays with no name and as elemts of another array. just the aquare brackets[] and the values intide them.
 
-Each entry in the JSON object should correspond to a single job posting.
+the first array should contain The title of the job (if available, otherwise "unknown").
 
-For each job posting, include the following fields:
+the second array should contain The name of the company offering the job (if available, otherwise "unknown").
 
-job_title: The title of the job (if available, otherwise "unknown").
+the third array should contain The location of the company (city, state, country, etc., if available, otherwise "unknown", if it is "Anywhere/remote" also mark it as "unknown" ).""")
 
-company_name: The name of the company offering the job (if available, otherwise "unknown").
 
-location: The location of the company (city, state, country, etc., if available, otherwise "unknown", if it is "Anywhere/remote" also mark it as "unknown" ).""")
-
+           
+            print(response.text)
             return jsonify(response.text)
         else:
             return 'No question provided'
