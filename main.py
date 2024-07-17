@@ -90,3 +90,24 @@ for i in range(5):
 
 # Print all job postings at once
 # print(all_job_postings)
+
+response = model.generate_content("""Input:
+
+A list containing the text descriptions of 5 job postings.
+
+{""" +  all_job_postings +"""}
+
+Output:
+
+A JSON object containing information extracted from each job posting.
+
+Each entry in the JSON object should correspond to a single job posting.
+
+For each job posting, include the following fields:
+
+job_title: The title of the job (if available, otherwise "unknown").
+
+company_name: The name of the company offering the job (if available, otherwise "unknown").
+
+location: The location of the company (city, state, country, etc., if available, otherwise "unknown", if it is "Anywhere/remote" also mark it as "unknown" ).""")
+print(response.text)
