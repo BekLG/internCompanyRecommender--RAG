@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import json
+import re
 from flask import Flask, request ,jsonify
 from langchain_community.vectorstores import Chroma
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -24,11 +25,17 @@ embeddings = GoogleGenerativeAIEmbeddings(
 
 persist_directory = 'docs/chroma/'
 
+# Function to clean json responses which are from the LLM
+def clean_json_string(json_string):
+    # Remove unwanted escape sequences
+    cleaned_string = re.sub(r'\\n|\\', '', json_string)
+    return cleaned_string
+
 # Function to be called when the server starts
 def startup_function():
     print("Server is starting...")
     json_file = "SQLite.json_modified.json"
-    num_messages_to_store = 1000
+    num_messages_to_store = 200
     texts = log_messages_to_list(json_file, num_messages_to_store)
     global vector_database
     vector_database = Chroma.from_texts(texts, embeddings)
@@ -37,8 +44,9 @@ def startup_function():
 @app.route('/ask', methods=['POST'])
 def ask_handler():
     if request.method == 'POST':
-        question = request.form.get('question')
-        print (question)
+        data = request.get_json()
+        question = data.get('question') if data else None
+        print(question)
         if question:
             # Similarity search with k = 5
             docs = vector_database.similarity_search(question, k=5)
@@ -52,24 +60,44 @@ def ask_handler():
             # Generate response using generative model
             response = model.generate_content("""Input:
 
+User's skills and expertise: {question}
+                                              
 A list containing the text descriptions of 5 job postings.
 
 {""" +  all_job_postings +"""}
 
+
+Instructions:
+1. Analyze the provided job postings to understand the skills and requirements mentioned.
+2. Generate recommendations for internship opportunities based on relevance to the user's skills and expertise.
+3. For each recommendation, include:
+   - Company Name: Name of the company offering the internship.
+   - Internship Title: Title of the internship position.
+   - Company Location: Location of the company (city, state, country, etc.).
+   - Description: Explain why this internship is a good match for the user's skills and expertise.
+4. Ensure the recommendations are ordered by relevance, with the most relevant opportunities listed first.
+
 Output:
+A JSON object with the following structure:
+{
+  "recommendations": [
+    {
+      "company": "Company Name",
+      "title": "Internship Title",
+      "location": "Company Location",
+      "description": "Why this internship is a good match for the user's skills and expertise."
+    }
+  ]
+}
 
-a string of 3 arrays with no name and as elemts of another array. just the aquare brackets[] and the values intide them.
 
-the first array should contain The title of the job (if available, otherwise "unknown").
-
-the second array should contain The name of the company offering the job (if available, otherwise "unknown").
-
-the third array should contain The location of the company (city, state, country, etc., if available, otherwise "unknown", if it is "Anywhere/remote" also mark it as "unknown" ).""")
+""")
 
 
            
             print(response.text)
-            return jsonify(response.text)
+            cleaned_response = clean_json_string(response.text)
+            return jsonify(cleaned_response)
         else:
             return 'No question provided'
     else:
